@@ -4,10 +4,10 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-arrow = { workspace = true, features = ["json"] }
 async-trait.workspace = true
-flatten-json-object = "0.6.1"
-futures.workspace = true
+bytes = "1.11.0"
+datafusion.workspace = true
+object_store.workspace = true
 reqwest.workspace = true
 serde.workspace = true
 serde_json.workspace = true

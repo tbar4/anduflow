@@ -1,10 +1,10 @@
-use arrow::array::RecordBatch;
+use bytes::Bytes;
 use serde::de::DeserializeOwned;
 
 use crate::extract::{Extractor, ExtractorResult};
 
 use super::error::ExtractorError;
-use reqwest::{Client, Request, RequestBuilder};
+use reqwest::{Client, Request, RequestBuilder, Method};
 
 #[derive(Debug)]
 pub struct RestExtractor {
@@ -44,8 +44,42 @@ impl RestExtractor {
         self
     }
 
+    /// Sets the HTTP method for the request. Note: this will recreate the request
+    /// builder from the client and will not preserve previously-set query params.
+    /// Call this before adding headers or query params when possible.
+    pub fn with_method<S: AsRef<str>>(mut self, method: S) -> Self {
+        // Accept a string method (e.g. "GET", "POST") to avoid forcing callers to depend
+        // on `reqwest` just to choose a method. Unknown methods fall back to GET.
+        let method_str = method.as_ref();
+        let parsed = method_str.parse::<Method>().unwrap_or(Method::GET);
+        let built = self.request.try_clone().unwrap().build().unwrap();
+        let url = built.url().to_string();
+        let headers = built.headers().clone();
+        self.request = self.client.request(parsed, url.as_str());
+        // Re-apply headers that were set on the previous builder
+        for (name, value) in headers.iter() {
+            self.request = self.request.header(name, value.clone());
+        }
+        self
+    }
+
+    /// Attach a raw body to the request.
+    pub fn with_body<B: Into<reqwest::Body>>(mut self, body: B) -> Self {
+        self.request = self.request.body(body);
+        self
+    }
+
+    /// Attach a JSON body and set the appropriate Content-Type header.
+    pub fn with_json_body<T: serde::Serialize>(mut self, value: &T) -> Self {
+        self.request = self.request.json(value);
+        self
+    }
+
     pub fn build_request(self) -> ExtractorResult<Request> {
         Ok(self.request.build()?)
+    }
+    pub fn url(&self) -> String {
+        self.request.try_clone().unwrap().build().unwrap().url().to_string()
     }
 }
 
@@ -73,27 +107,72 @@ impl Extractor for RestExtractor {
         println!("Closing RestExtractor resources.");
         Ok(())
     }
-    async fn extract<T: DeserializeOwned>(&self) -> ExtractorResult<T> {
+    
+    async fn extract_json<T: DeserializeOwned>(&self) -> ExtractorResult<T> {
         let request = self
             .request
             .try_clone()
             .ok_or(ExtractorError::RequestCloneFailed)?
             .build()?;
         let response = self.client.execute(request).await?;
-        let result = response.json::<T>().await?;
+        let status = response.status();
 
-        Ok(result)
+        // Read the response body as text first so we can provide clearer errors for empty or non-JSON bodies
+        let text = response.text().await?;
+        if text.trim().is_empty() {
+            return Err(ExtractorError::ExtractOpsError(format!(
+                "Empty response body (status: {})",
+                status
+            )));
+        }
+
+        // Attempt to deserialize from the obtained text. If parsing fails, return a
+        // clear error that includes a snippet of the response body to aid debugging.
+        match serde_json::from_str::<T>(&text) {
+            Ok(parsed) => Ok(parsed),
+            Err(e) => {
+                let snippet: String = text.chars().take(1024).collect();
+                return Err(ExtractorError::ExtractOpsError(format!(
+                    "Failed to parse JSON: {}. Response snippet: {}",
+                    e, snippet
+                )));
+            }
+        }
     }
-    async fn to_record_batch(&self) -> ExtractorResult<RecordBatch> {
-        unimplemented!()
+    
+    async fn extract_text(&self) -> ExtractorResult<String> {
+        let request = self
+            .request
+            .try_clone()
+            .ok_or(ExtractorError::RequestCloneFailed)?
+            .build()?;
+        let response = self.client.execute(request).await?;
+        Ok(response.text().await?)
     }
-    async fn extract_batch<T>() -> ExtractorResult<Vec<T>> {
-        unimplemented!()
+    
+    async fn extract_bytes(&self) -> ExtractorResult<Vec<u8>> {
+        let request = self
+            .request
+            .try_clone()
+            .ok_or(ExtractorError::RequestCloneFailed)?
+            .build()?;
+        let response = self.client.execute(request).await?;
+        Ok(response.bytes().await?.to_vec())
+    }
+    
+    async fn extract_raw(&self) -> ExtractorResult<Bytes> {
+        let request = self
+            .request
+            .try_clone()
+            .ok_or(ExtractorError::RequestCloneFailed)?
+            .build()?;
+        let response = self.client.execute(request).await?;
+        Ok(response.bytes().await?)
     }
     fn source_name(&self) -> ExtractorResult<&str> {
-        unimplemented!()
+        Ok("RestExtractor")
     }
-    async fn metadata(&self) -> ExtractorResult<super::Metadata> {
+    async fn metadata(&self) -> ExtractorResult<String> {
         unimplemented!()
     }
     fn supports_incremental(&self) -> bool {

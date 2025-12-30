@@ -27,6 +27,6 @@ pretty_assertions = "1.4.1"
 
 [dependencies]
 dotenv = "0.15.0"
-etl-core = { path = "etl-core" }
+etl-core = { version = "0.1.0", path = "etl-core" }
 serde_json.workspace = true
 tokio = { workspace = true, features = ["full"] }

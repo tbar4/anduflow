@@ -4,6 +4,9 @@ version = "0.1.0"
 description = "A Rust ETL framework"
 license = "MIT"
 edition = "2024"
+repository = "https://github.com/tbar4/anduflow"
+homepage = "https://github.com/tbar4/anduflow"
+documentation = "https://docs.rs/anduflow"
 
 
 [workspace]

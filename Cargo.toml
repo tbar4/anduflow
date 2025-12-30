@@ -1,7 +1,10 @@
 [package]
-name = "rust_etl"
+name = "anduflow"
 version = "0.1.0"
+description = "A Rust ETL framework"
+license = "MIT"
 edition = "2024"
+
 
 [workspace]
 members = ["etl-core"]

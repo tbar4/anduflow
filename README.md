@@ -1,4 +1,4 @@
-# Rust ETL
+# Anduflow
 
 ETL (Extract, Transform, Load) application and library for Rust.
 
@@ -20,7 +20,7 @@ This project provides a complete ETL (Extract, Transform, Load) solution built i
 - Support for various data formats (JSON, text, bytes)
 - Comprehensive documentation and tests
 
-## Usage
+## Installation
 
 ### As a Library
 
@@ -28,7 +28,37 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-etl-core = { path = "etl-core" }
+anduflow = "0.1"
+```
+
+Or if you want to use the latest version from the repository:
+
+```toml
+[dependencies]
+anduflow = { git = "https://github.com/your-username/anduflow", branch = "main" }
+```
+
+### As an Application
+
+To install the application:
+
+```bash
+cargo install anduflow
+```
+
+## Usage
+
+### As a Library
+
+```rust
+use anduflow::etl_core::extract::{Extractor, ExtractorResult, rest_extractor::RestExtractor};
+
+#[tokio::main]
+async fn main() -> ExtractorResult<()> {
+    let extractor = RestExtractor::new("https://api.example.com", "data");
+    let data: serde_json::Value = extractor.extract().await?;
+    Ok(())
+}
 ```
 
 ### As an Application
@@ -66,3 +96,5 @@ cargo doc --open
 # Generate documentation for the core library only
 cd etl-core && cargo doc --open
 ```
+
+For online documentation, visit [docs.rs/anduflow](https://docs.rs/anduflow).

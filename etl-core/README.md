@@ -23,7 +23,14 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-etl-core = { path = "etl-core" }
+etl-core = "0.1"
+```
+
+Or if you want to use the latest version from the repository:
+
+```toml
+[dependencies]
+etl-core = { git = "https://github.com/your-username/anduflow", branch = "main" }
 ```
 
 ## Examples
@@ -58,3 +65,5 @@ To generate and view the documentation:
 ```bash
 cargo doc --open
 ```
+
+For online documentation, visit [docs.rs/etl-core](https://docs.rs/etl-core).

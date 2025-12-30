@@ -1,3 +1,43 @@
+//! REST API extractor implementation.
+//!
+//! This module provides an implementation of the [`Extractor`] trait for
+//! extracting data from REST APIs. It uses the `reqwest` crate for HTTP
+//! operations and supports various HTTP methods, headers, query parameters,
+//! and authentication methods.
+//!
+//! # Examples
+//!
+//! ```
+//! use etl_core::extract::rest_extractor::RestExtractor;
+//!
+//! let extractor = RestExtractor::new("https://api.example.com", "data")
+//!     .with_query_param(&[("limit", "10")])
+//!     .with_header("User-Agent", "MyApp/1.0");
+//! ```
+//!
+//! For APIs that require authentication:
+//!
+//! ```
+//! use etl_core::extract::rest_extractor::RestExtractor;
+//!
+//! let extractor = RestExtractor::new("https://api.example.com", "data")
+//!     .with_auth_token("your-api-token");
+//! ```
+//!
+//! For POST requests with JSON body:
+//!
+//! ```
+//! use etl_core::extract::rest_extractor::RestExtractor;
+//! use serde_json::json;
+//!
+//! let extractor = RestExtractor::new("https://api.example.com", "data")
+//!     .with_method("POST")
+//!     .with_json_body(&json!({
+//!         "query": "example",
+//!         "limit": 10
+//!     }));
+//! ```
+
 use bytes::Bytes;
 use serde::de::DeserializeOwned;
 
@@ -6,6 +46,19 @@ use crate::extract::{Extractor, ExtractorResult};
 use super::error::ExtractorError;
 use reqwest::{Client, Request, RequestBuilder, Method};
 
+/// A REST API extractor.
+///
+/// This struct implements the [`Extractor`] trait for extracting data from REST APIs.
+/// It provides a fluent API for configuring the HTTP request, including method,
+/// headers, query parameters, and authentication.
+///
+/// # Examples
+///
+/// ```
+/// use etl_core::extract::rest_extractor::RestExtractor;
+///
+/// let extractor = RestExtractor::new("https://api.example.com", "data");
+/// ```
 #[derive(Debug)]
 pub struct RestExtractor {
     client: Client,
@@ -13,6 +66,27 @@ pub struct RestExtractor {
 }
 
 impl RestExtractor {
+    /// Create a new REST extractor.
+    ///
+    /// This method creates a new REST extractor for the specified base URL and endpoint.
+    /// The base URL and endpoint are combined to form the full URL for requests.
+    ///
+    /// # Parameters
+    ///
+    /// - `base_url`: The base URL of the API (e.g., "https://api.example.com")
+    /// - `endpoint`: The endpoint to request (e.g., "data" or "/data")
+    ///
+    /// # Returns
+    ///
+    /// A new `RestExtractor` instance configured with the specified base URL and endpoint.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use etl_core::extract::rest_extractor::RestExtractor;
+    ///
+    /// let extractor = RestExtractor::new("https://api.example.com", "data");
+    /// ```
     pub fn new(base_url: &str, endpoint: &str) -> Self {
         let trimmed_base = base_url.trim_end_matches('/');
         let trimmed_endpoint = endpoint.trim_start_matches('/');
@@ -24,21 +98,106 @@ impl RestExtractor {
         }
     }
 
+    /// Add basic authentication to the request.
+    ///
+    /// This method adds basic authentication credentials to the request.
+    ///
+    /// # Parameters
+    ///
+    /// - `username`: The username for authentication
+    /// - `password`: The password for authentication
+    ///
+    /// # Returns
+    ///
+    /// The `RestExtractor` instance with basic authentication configured.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use etl_core::extract::rest_extractor::RestExtractor;
+    ///
+    /// let extractor = RestExtractor::new("https://api.example.com", "data")
+    ///     .with_basic_auth("user", "pass");
+    /// ```
     pub fn with_basic_auth(mut self, username: &str, password: &str) -> Self {
         self.request = self.request.basic_auth(username, Some(password));
         self
     }
 
+    /// Add a header to the request.
+    ///
+    /// This method adds a header to the request. If the header already exists,
+    /// it will be overwritten.
+    ///
+    /// # Parameters
+    ///
+    /// - `key`: The header name
+    /// - `value`: The header value
+    ///
+    /// # Returns
+    ///
+    /// The `RestExtractor` instance with the header added.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use etl_core::extract::rest_extractor::RestExtractor;
+    ///
+    /// let extractor = RestExtractor::new("https://api.example.com", "data")
+    ///     .with_header("User-Agent", "MyApp/1.0");
+    /// ```
     pub fn with_header(mut self, key: &str, value: &str) -> Self {
         self.request = self.request.header(key, value);
         self
     }
 
+    /// Add query parameters to the request.
+    ///
+    /// This method adds query parameters to the request. The parameters are
+    /// specified as a slice of key-value pairs.
+    ///
+    /// # Parameters
+    ///
+    /// - `query`: A slice of key-value pairs representing the query parameters
+    ///
+    /// # Returns
+    ///
+    /// The `RestExtractor` instance with the query parameters added.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use etl_core::extract::rest_extractor::RestExtractor;
+    ///
+    /// let extractor = RestExtractor::new("https://api.example.com", "data")
+    ///     .with_query_param(&[("limit", "10"), ("offset", "0")]);
+    /// ```
     pub fn with_query_param(mut self, query: &[(&str, &str)]) -> Self {
         self.request = self.request.query(query);
         self
     }
 
+    /// Add bearer token authentication to the request.
+    ///
+    /// This method adds bearer token authentication to the request by setting
+    /// the Authorization header to "Bearer {token}".
+    ///
+    /// # Parameters
+    ///
+    /// - `token`: The bearer token
+    ///
+    /// # Returns
+    ///
+    /// The `RestExtractor` instance with bearer token authentication configured.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use etl_core::extract::rest_extractor::RestExtractor;
+    ///
+    /// let extractor = RestExtractor::new("https://api.example.com", "data")
+    ///     .with_auth_token("your-api-token");
+    /// ```
     pub fn with_auth_token(mut self, token: &str) -> Self {
         self.request = self.request.bearer_auth(token);
         self
@@ -75,9 +234,27 @@ impl RestExtractor {
         self
     }
 
+    /// Build the request.
+    ///
+    /// This method builds the request and returns it. This can be useful for
+    /// debugging or for cases where you need to inspect the request before
+    /// sending it.
+    ///
+    /// # Returns
+    ///
+    /// - `Ok(Request)` with the built request
+    /// - `Err(ExtractorError)` if an error occurred while building the request
     pub fn build_request(self) -> ExtractorResult<Request> {
         Ok(self.request.build()?)
     }
+    
+    /// Get the URL of the request.
+    ///
+    /// This method returns the URL that will be used for the request.
+    ///
+    /// # Returns
+    ///
+    /// A string representation of the URL.
     pub fn url(&self) -> String {
         self.request.try_clone().unwrap().build().unwrap().url().to_string()
     }

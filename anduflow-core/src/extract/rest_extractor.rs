@@ -8,7 +8,7 @@
 //! # Examples
 //!
 //! ```
-//! use etl_core::extract::rest_extractor::RestExtractor;
+//! use anduflow_core::extract::rest_extractor::RestExtractor;
 //!
 //! let extractor = RestExtractor::new("https://api.example.com", "data")
 //!     .with_query_param(&[("limit", "10")])
@@ -18,7 +18,7 @@
 //! For APIs that require authentication:
 //!
 //! ```
-//! use etl_core::extract::rest_extractor::RestExtractor;
+//! use anduflow_core::extract::rest_extractor::RestExtractor;
 //!
 //! let extractor = RestExtractor::new("https://api.example.com", "data")
 //!     .with_auth_token("your-api-token");
@@ -27,7 +27,7 @@
 //! For POST requests with JSON body:
 //!
 //! ```
-//! use etl_core::extract::rest_extractor::RestExtractor;
+//! use anduflow_core::extract::rest_extractor::RestExtractor;
 //! use serde_json::json;
 //!
 //! let extractor = RestExtractor::new("https://api.example.com", "data")
@@ -41,8 +41,8 @@
 use bytes::Bytes;
 use serde::de::DeserializeOwned;
 
-use crate::extract::{Extractor, ExtractorResult};
-
+use super::Extractor;
+use super::ExtractorResult;
 use super::error::ExtractorError;
 use reqwest::{Client, Request, RequestBuilder, Method};
 
@@ -55,7 +55,7 @@ use reqwest::{Client, Request, RequestBuilder, Method};
 /// # Examples
 ///
 /// ```
-/// use etl_core::extract::rest_extractor::RestExtractor;
+/// use anduflow_core::extract::rest_extractor::RestExtractor;
 ///
 /// let extractor = RestExtractor::new("https://api.example.com", "data");
 /// ```
@@ -83,7 +83,7 @@ impl RestExtractor {
     /// # Examples
     ///
     /// ```
-    /// use etl_core::extract::rest_extractor::RestExtractor;
+    /// use anduflow_core::extract::rest_extractor::RestExtractor;
     ///
     /// let extractor = RestExtractor::new("https://api.example.com", "data");
     /// ```
@@ -114,7 +114,7 @@ impl RestExtractor {
     /// # Examples
     ///
     /// ```
-    /// use etl_core::extract::rest_extractor::RestExtractor;
+    /// use anduflow_core::extract::rest_extractor::RestExtractor;
     ///
     /// let extractor = RestExtractor::new("https://api.example.com", "data")
     ///     .with_basic_auth("user", "pass");
@@ -141,7 +141,7 @@ impl RestExtractor {
     /// # Examples
     ///
     /// ```
-    /// use etl_core::extract::rest_extractor::RestExtractor;
+    /// use anduflow_core::extract::rest_extractor::RestExtractor;
     ///
     /// let extractor = RestExtractor::new("https://api.example.com", "data")
     ///     .with_header("User-Agent", "MyApp/1.0");
@@ -167,7 +167,7 @@ impl RestExtractor {
     /// # Examples
     ///
     /// ```
-    /// use etl_core::extract::rest_extractor::RestExtractor;
+    /// use anduflow_core::extract::rest_extractor::RestExtractor;
     ///
     /// let extractor = RestExtractor::new("https://api.example.com", "data")
     ///     .with_query_param(&[("limit", "10"), ("offset", "0")]);
@@ -193,7 +193,7 @@ impl RestExtractor {
     /// # Examples
     ///
     /// ```
-    /// use etl_core::extract::rest_extractor::RestExtractor;
+    /// use anduflow_core::extract::rest_extractor::RestExtractor;
     ///
     /// let extractor = RestExtractor::new("https://api.example.com", "data")
     ///     .with_auth_token("your-api-token");

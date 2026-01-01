@@ -6,7 +6,7 @@
 //! # Examples
 //!
 //! ```
-//! use etl_core::extract::{Extractor, ExtractorResult, rest_extractor::RestExtractor};
+//! use anduflow_core::extract::{Extractor, ExtractorResult, rest_extractor::RestExtractor};
 //!
 //! #[tokio::main]
 //! async fn example() -> ExtractorResult<()> {

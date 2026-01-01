@@ -1,12 +1,10 @@
-
-
 use anduflow::anduflow_core::extract::{Extractor, ExtractorResult, rest_extractor::RestExtractor};
 use dotenv::dotenv;
 
 #[tokio::main]
 async fn main() -> ExtractorResult<()> {
     dotenv().ok();
-    let _perp_api_key = std::env::var("PERPLEXITY_API_KEY").expect("PERPLEXITY_API_KEY must be set in .env file");
+    let perp_api_key = std::env::var("PERPLEXITY_API_KEY").expect("PERPLEXITY_API_KEY must be set in .env file");
 
     let spacedevs: RestExtractor =
         RestExtractor::new("https://api.spaceflightnewsapi.net/v4", "articles")

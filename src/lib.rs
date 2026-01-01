@@ -1,7 +1,7 @@
-//! ETL (Extract, Transform, Load) application for Rust.
+//! Anduflow - ETL (Extract, Transform, Load) application for Rust.
 //!
 //! This crate provides a complete ETL application built on top of the
-//! [`etl-core`](../etl_core/index.html) library. It includes command-line
+//! `anduflow_core` library. It includes command-line
 //! tools and examples for performing ETL operations.
 //!
 //! # Features
@@ -14,4 +14,7 @@
 //!
 //! See the `examples` directory for example implementations of ETL pipelines.
 
-pub use etl_core;
+pub mod anduflow_core {
+    pub use anduflow_core::*;
+}
+

@@ -19,12 +19,13 @@
 use async_trait::async_trait;
 use serde::de::DeserializeOwned;
 use bytes::Bytes;
+use anduflow_utils::error;
+use anduflow_utils::error::ExtractorResult;
+use anduflow_utils::logger::store::LogStore;
 
-pub mod error;
 pub mod rest_extractor;
 
-/// The result type for extractor operations.
-pub type ExtractorResult<T> = Result<T, error::ExtractorError>;
+
 
 /// A checkpoint for incremental extraction.
 #[derive(Debug, Clone)]
@@ -104,8 +105,8 @@ pub trait Extractor {
     ///
     /// - `Ok(T)` with the deserialized data
     /// - `Err(ExtractorError)` if an error occurred during extraction or deserialization
-    async fn extract<T: DeserializeOwned>(&self) -> ExtractorResult<T> {
-        self.extract_json().await
+    async fn extract<T: DeserializeOwned>(&self, logger: &mut LogStore) -> ExtractorResult<T> {
+        self.extract_json(logger).await
     }
     
     /// Extract data from the source as JSON.
@@ -120,7 +121,7 @@ pub trait Extractor {
     ///
     /// - `Ok(T)` with the deserialized data
     /// - `Err(ExtractorError)` if an error occurred during extraction or deserialization
-    async fn extract_json<T: DeserializeOwned>(&self) -> ExtractorResult<T>;
+    async fn extract_json<T: DeserializeOwned>(&self, logger: &mut LogStore) -> ExtractorResult<T>;
     
     /// Extract data from the source as text.
     ///

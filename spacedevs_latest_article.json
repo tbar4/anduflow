@@ -1,0 +1,4 @@
+{"timestamp":"2026-01-01T17:44:04.874609-08:00","level":"INFO","fields":{"message":"Starting RestExtractor example"},"target":"extractors","threadName":"main","threadId":"ThreadId(1)"}
+{"timestamp":"2026-01-01T17:44:04.879355-08:00","level":"INFO","fields":{"message":"Ensured etl_logs table exists"},"target":"extractors","threadName":"main","threadId":"ThreadId(1)"}
+{"timestamp":"2026-01-01T17:44:04.879407-08:00","level":"INFO","fields":{"message":"Initialized LogStore"},"target":"extractors","threadName":"main","threadId":"ThreadId(1)"}
+{"timestamp":"2026-01-01T17:44:04.885515-08:00","level":"INFO","fields":{"message":"Created RestExtractor for SpaceDevs API"},"target":"extractors","threadName":"main","threadId":"ThreadId(1)"}

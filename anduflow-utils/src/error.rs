@@ -10,7 +10,11 @@ use object_store::Error as ObjStoreError;
 use reqwest::Error as ReqwestError;
 use serde_json::Error as SerdeError;
 use std::io::Error as IoError;
+use rusqlite::Error as RusqliteError;
 use thiserror::Error;
+
+/// The result type for extractor operations.
+pub type ExtractorResult<T> = Result<T, ExtractorError>;
 
 /// The error type for extractor operations.
 ///
@@ -75,4 +79,10 @@ pub enum ExtractorError {
     /// Arrow operations fail.
     #[error("Arrow error: {0}")]
     ArrowError(#[from] ArrowError),
+
+    /// SQLite error.
+    /// 
+    /// This variant wraps a `rusqlite::Error` and is used when SQLite operations fail.
+    #[error ("SQLite error: {0}")]
+    SqliteError(#[from] RusqliteError),
 }

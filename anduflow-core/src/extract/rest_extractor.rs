@@ -39,11 +39,15 @@
 //! ```
 
 use bytes::Bytes;
+use rusqlite::Connection;
 use serde::de::DeserializeOwned;
+use serde_json::json;
+use anduflow_utils::logger::store::LogStore;
+
 
 use super::Extractor;
-use super::ExtractorResult;
-use super::error::ExtractorError;
+
+use anduflow_utils::error::{ExtractorError, ExtractorResult};
 use reqwest::{Client, Request, RequestBuilder, Method};
 
 /// A REST API extractor.
@@ -63,6 +67,8 @@ use reqwest::{Client, Request, RequestBuilder, Method};
 pub struct RestExtractor {
     client: Client,
     request: RequestBuilder,
+    // Connection removed from main struct since it's not used in async methods
+    // Database operations should be handled separately
 }
 
 impl RestExtractor {
@@ -95,6 +101,7 @@ impl RestExtractor {
         RestExtractor {
             client: Client::new(),
             request: Client::new().get(rest_api.as_str()),
+
         }
     }
 
@@ -284,13 +291,19 @@ impl Extractor for RestExtractor {
         println!("Closing RestExtractor resources.");
         Ok(())
     }
-    
-    async fn extract_json<T: DeserializeOwned>(&self) -> ExtractorResult<T> {
+
+    async fn extract_json<T: DeserializeOwned>(&self, logger: &mut LogStore) -> ExtractorResult<T> {
+        logger.mark_in_progress();
+        logger.set_metadata(json!({
+            "test": "test"
+        }));
         let request = self
             .request
             .try_clone()
             .ok_or(ExtractorError::RequestCloneFailed)?
             .build()?;
+        logger.update_progress(1, 1);
+        logger.mark_completed();
         let response = self.client.execute(request).await?;
         let status = response.status();
 
